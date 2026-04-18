@@ -11,5 +11,6 @@ their songwriting. It can generate interesting chordal harmonies, suggest fun ti
 
 ## Demonstrations
 Here I received the prompt __"Replace intent with procedure"__ with the generated chord progression of $Ebadd11 - Gm - Ab$ 
-in 7/4 time and a BPM 82
-[![Watch the video](https://www.youtube.com/shorts/w0HZ1BGVD1s)
+in 7/4 time and a BPM 82 (https://www.youtube.com/shorts/w0HZ1BGVD1s)
+
+Here I received the prompt __"Limit time to force structural decisions"__ with the generated chord progression of $Dm - Db11$ in 5/4 time and a BPM of 106 (https://www.youtube.com/shorts/Yuv4bGoAMFI)
