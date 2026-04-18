@@ -65,7 +65,7 @@ python main.py
    When prompted, type either `Challenge` or `Relaxed`:
 
    - **Challenge** — generates a harder chord progression much more likely to be chromatic and feature odd time signatures like 5/4, 7/8, or 9/8. 
-   - **Relaxed** — generates a more approachable progression that increases the probalities of generating a progression that remains in key, minimizes the probabilties of receiving chromatic extensions or triads
+   - **Relaxed** — generates a more approachable progression that increases the probalities of generating a progression that remains in key and minimizes the probabilties of receiving chromatic extensions or triads
 
 2. **Receive your Creative Dilemma**
 
