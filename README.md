@@ -6,11 +6,15 @@ Bowie and Eno sought inspiration from a deck of bamboo cards called _Oblique Str
 provoking remarks that the artist would then have to decipher in their music. Since their use by Bowie and Eno, many artists have used 
 the cards in their own albums, including LCD Soundsystem, Phoenix, The B-52s, MGMT, and Bauhaus. 
 
+![Bowie,Eno,Fripp photo by Sky TV](https://github.com/StLaurentMTL/stochastic_strategies/blob/main/photos/david_brian.jpg)
+
 __Stochastic Strategies__ is a simple algorithm I wrote that takes inspiration from *Oblique Strategies* that songwriters can use to challenge themselves and 
 their songwriting. It can generate interesting chordal harmonies, suggest fun time signatures, and even suggest an "Oblique-like" prompt to boot!
 
 ## Demonstrations
 Here I received the prompt __"Replace intent with procedure"__ with the generated chord progression of $Ebadd11 - Gm - Ab$ 
 in 7/4 time and a BPM 82 (https://www.youtube.com/shorts/w0HZ1BGVD1s)
+![Card Example 1](https://github.com/StLaurentMTL/stochastic_strategies/blob/main/photos/card2exp.jpg)
 
 Here I received the prompt __"Limit time to force structural decisions"__ with the generated chord progression of $Dm - Db11$ in 5/4 time and a BPM of 106 (https://www.youtube.com/shorts/Yuv4bGoAMFI)
+![Card Example 2](https://github.com/StLaurentMTL/stochastic_strategies/blob/main/photos/card1exp.jpg)
