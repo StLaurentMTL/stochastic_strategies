@@ -1,5 +1,4 @@
-########################## Oblique Strategies ############################
-OBLIQUE_LIKE_STRATEGIES = [
+OBLIQUE_LIKE_STRATEGIES: list[str] = [
     "Invert the assumption driving the current decision",
     "Remove the most obvious element and proceed",
     "Replace control with constraint",
@@ -24,26 +23,25 @@ OBLIQUE_LIKE_STRATEGIES = [
     "Amplify an error until it becomes structure",
     "Freeze one parameter and vary everything else",
     "Swap roles between cause and effect",
-    "Pretend the system belongs to someone else"
+    "Pretend the system belongs to someone else",
 ]
-########################## NOTES AND MAJOR KEY INTERVALS ##################
-NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] 
-MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11]
-DEGREES_MAJOR = ["I", "II", "III", "IV", "V", "VI", "VII"]
-DEGREES_MINOR = ["i","ii","iii","iv","v","vi","vii"]
 
-########################## CHORDS ##########################################
-TRIADS = ["m","aug","dim"]
+NOTES: list[str] = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+MAJOR_INTERVALS: list[int] = [0, 2, 4, 5, 7, 9, 11]
+DEGREES_MAJOR: list[str] = ["I", "II", "III", "IV", "V", "VI", "VII"]
+DEGREES_MINOR: list[str] = ["i", "ii", "iii", "iv", "v", "vi", "vii"]
 
-# EXTENSIONS
-EXTENSIONS = ["9", "11", "13","b9", "#9", "#11", "b13",
-              "add9", "add11", "add13", "add2", "add4",
-              "sus2", "sus4","maj7","maj9","maj7b5","7","b5"]
-AUGMENTED_EXTENSIONS = ["9","11","#9","#11","13", "b13"]
-DIMINISHED_EXTENSIONS = ["b9","11","13"]
+TRIADS: list[str] = ["m", "aug", "dim"]
 
-# DIATONIC PROGRESSIONS
-DIATONIC_PROGRESSIONS = {
+EXTENSIONS: list[str] = [
+    "9", "11", "13", "b9", "#9", "#11", "b13",
+    "add9", "add11", "add13", "add2", "add4",
+    "sus2", "sus4", "maj7", "maj9", "maj7b5", "7", "b5",
+]
+AUGMENTED_EXTENSIONS: list[str] = ["9", "11", "#9", "#11", "13", "b13"]
+DIMINISHED_EXTENSIONS: list[str] = ["b9", "11", "13"]
+
+DIATONIC_PROGRESSIONS: dict[str, list[str]] = {
     "C":  ["C",  "Dm",  "Em",  "F",  "G",  "Am",  "Bdim"],
     "C#": ["C#", "D#m", "Fm",  "F#", "G#", "A#m", "Cdim"],
     "D":  ["D",  "Em",  "F#m", "G",  "A",  "Bm",  "C#dim"],
@@ -58,10 +56,4 @@ DIATONIC_PROGRESSIONS = {
     "B":  ["B",  "C#m", "D#m", "E",  "F#", "G#m", "A#dim"],
 }
 
-# TIME SIGNATURES
-TIME_SIGNATURES = ["4/4","3/4","2/4","2/2","5/4","6/4","7/4","6/8","9/8"]
-
-# TEMPOS
-
-
-
+TIME_SIGNATURES: list[str] = ["4/4", "3/4", "2/4", "2/2", "5/4", "6/4", "7/4", "6/8", "9/8"]
