@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stochastic Strategies</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --yellow: #F3D302;
+    --yellow-deep: #D9BB00;
+    --yellow-shadow: #a98f00;
+    --ink: #17140F;
+    --paper: #FBF6E9;
+    --paper-edge: #EDE4CB;
+    --grey: #58554C;
+    --grey-light: #948F80;
+    --red: #C21F26;
+    --led-green: #4FCB6A;
+    --led-amber: #E8A400;
+    --concrete: #DEDACE;
+
+    --font-display: 'Bahnschrift', 'DIN Alternate', 'Segoe UI Semibold', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Roboto Mono', 'Liberation Mono', Menlo, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top, #ECE8DC 0%, var(--concrete) 55%, #CFCABA 100%);
+    background-attachment: fixed;
+    font-family: var(--font-display);
+    color: var(--ink);
+  }
+
+  body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 40px 16px 80px;
+  }
+
+  .platform-line{
+    width:100%;
+    max-width:640px;
+    height:6px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 26px, transparent 26px 40px);
+    opacity:.35;
+    margin-bottom:28px;
+  }
+
+  header.page-head{
+    text-align:center;
+    margin-bottom: 30px;
+  }
+  header.page-head h1{
+    font-size: clamp(22px, 4.4vw, 32px);
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+    font-weight: 700;
+  }
+  header.page-head p{
+    margin:0;
+    color: var(--grey);
+    font-size: 14px;
+    max-width: 46ch;
+    margin: 0 auto;
+    line-height:1.5;
+  }
+
+  /* ============ MACHINE ============ */
+  .machine{
+    width: min(420px, 92vw);
+    background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-deep) 100%);
+    border-radius: 6px;
+    border: 3px solid var(--ink);
+    box-shadow:
+      0 2px 0 var(--yellow-shadow) inset,
+      0 22px 40px -18px rgba(0,0,0,.55),
+      0 2px 0 rgba(0,0,0,.2);
+    padding: 18px 18px 22px;
+    position: relative;
+  }
+
+  .rivet{
+    position:absolute;
+    width:9px; height:9px;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff8, var(--ink) 70%);
+    border: 1px solid rgba(0,0,0,.5);
+  }
+  .rivet.tl{ top:9px; left:9px; }
+  .rivet.tr{ top:9px; right:9px; }
+  .rivet.bl{ bottom:9px; left:9px; }
+  .rivet.br{ bottom:9px; right:9px; }
+
+  .machine-top{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .line-badge{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .line-badge .roundel{
+    width:30px; height:30px;
+    border-radius:50%;
+    background: var(--ink);
+    color: var(--yellow);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing: -0.5px;
+    flex-shrink:0;
+  }
+  .line-badge .line-text{
+    line-height:1.1;
+  }
+  .line-badge .line-text .line-no{
+    font-weight:700;
+    font-size: 15px;
+    display:block;
+  }
+  .line-badge .line-text .line-sub{
+    font-size: 10.5px;
+    color: rgba(23,20,15,.65);
+    letter-spacing: .4px;
+  }
+
+  .vents{
+    display:grid;
+    grid-template-columns: repeat(4, 5px);
+    grid-auto-rows: 5px;
+    gap: 3px;
+  }
+  .vents span{
+    width:5px; height:5px; border-radius:50%;
+    background: rgba(23,20,15,.35);
+  }
+
+  .machine-title{
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    text-align:left;
+    margin: 0 0 16px;
+    color: var(--ink);
+  }
+
+  .display-strip{
+    background: #11150F;
+    border-radius: 3px;
+    padding: 8px 10px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(0,0,0,.5);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.6);
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .display-strip .status-text{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--led-green);
+    text-shadow: 0 0 6px rgba(79,203,106,.7);
+    white-space: nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;
+  }
+  .display-strip .status-text.amber{
+    color: var(--led-amber);
+    text-shadow: 0 0 6px rgba(232,164,0,.7);
+  }
+  .led-dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--led-green);
+    box-shadow: 0 0 6px var(--led-green);
+    flex-shrink:0;
+    transition: background .2s, box-shadow .2s;
+  }
+  .led-dot.busy{
+    background: var(--led-amber);
+    box-shadow: 0 0 6px var(--led-amber);
+    animation: blink 0.6s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity: .25; } }
+
+  .progress-track{
+    height: 4px;
+    background: rgba(255,255,255,.08);
+    border-radius: 2px;
+    overflow:hidden;
+    margin-top: 6px;
+  }
+  .progress-fill{
+    height:100%;
+    width: 0%;
+    background: var(--led-amber);
+    transition: width .12s linear;
+  }
+
+  fieldset.mode-select{
+    border: none;
+    margin: 0 0 16px;
+    padding: 0;
+    display:flex;
+    gap: 8px;
+  }
+  fieldset.mode-select legend{
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    color: rgba(23,20,15,.7);
+    padding: 0 0 6px;
+  }
+  .mode-btn{
+    flex:1;
+    position:relative;
+  }
+  .mode-btn input{
+    position:absolute;
+    opacity:0;
+    width:100%; height:100%;
+    margin:0;
+    cursor:pointer;
+  }
+  .mode-btn label{
+    display:block;
+    text-align:center;
+    padding: 11px 6px;
+    background: #EFE9D8;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: .4px;
+    color: var(--ink);
+    box-shadow: 0 3px 0 var(--ink);
+    transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
+    cursor:pointer;
+    user-select:none;
+  }
+  .mode-btn input:checked + label{
+    background: var(--ink);
+    color: var(--yellow);
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--ink);
+  }
+  .mode-btn input:focus-visible + label{
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+  }
+  .mode-btn .sub{
+    display:block;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: .2px;
+    margin-top: 2px;
+    opacity: .75;
+  }
+
+  .stamp-row{
+    display:flex;
+    justify-content:center;
+    margin: 4px 0 6px;
+  }
+  .stamp-btn{
+    width: 96px; height:96px;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    background: radial-gradient(circle at 35% 30%, #FFF6C8, var(--yellow) 55%, var(--yellow-deep) 100%);
+    box-shadow: 0 6px 0 var(--yellow-shadow), 0 10px 18px rgba(0,0,0,.35);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .5px;
+    color: var(--ink);
+    cursor:pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .stamp-btn:hover{ filter: brightness(1.03); }
+  .stamp-btn:active,
+  .stamp-btn.pressed{
+    transform: translateY(6px);
+    box-shadow: 0 0 0 var(--yellow-shadow), 0 3px 6px rgba(0,0,0,.35);
+  }
+  .stamp-btn:disabled{
+    cursor: not-allowed;
+    filter: grayscale(.3) brightness(.9);
+  }
+  .stamp-btn:focus-visible{
+    outline: 3px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  .slot{
+    margin-top: 16px;
+    height: 14px;
+    border-radius: 3px;
+    background: #0E100C;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,.8), inset 0 -1px 0 rgba(255,255,255,.05);
+    position: relative;
+  }
+  .slot::before{
+    content:"";
+    position:absolute;
+    left: 10%; right: 10%; top: 50%;
+    height: 2px;
+    background: rgba(255,255,255,.06);
+    transform: translateY(-50%);
+  }
+
+  /* ============ TICKET ============ */
+  .ticket-wrap{
+    width: min(380px, 88vw);
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .9s cubic-bezier(.2,.8,.2,1);
+  }
+  .ticket-wrap.show{
+    max-height: 900px;
+  }
+
+  #ticket{
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.012) 3px 6px);
+    margin-top: 4px;
+    padding: 18px 20px 20px;
+    font-family: var(--font-mono);
+    color: var(--ink);
+    box-shadow: 0 14px 24px -12px rgba(0,0,0,.4);
+    clip-path: polygon(
+      0% 6px, 4% 0%, 8% 6px, 12% 0%, 16% 6px, 20% 0%, 24% 6px, 28% 0%, 32% 6px, 36% 0%,
+      40% 6px, 44% 0%, 48% 6px, 52% 0%, 56% 6px, 60% 0%, 64% 6px, 68% 0%, 72% 6px, 76% 0%,
+      80% 6px, 84% 0%, 88% 6px, 92% 0%, 96% 6px, 100% 0%,
+      100% 100%, 0% 100%
+    );
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  .ticket-wrap.show #ticket{
+    animation: feed-out .9s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes feed-out{
+    0%{ transform: translateY(-100%); opacity: 0; }
+    100%{ transform: translateY(0); opacity: 1; }
+  }
+
+  .ticket-row{
+    display:flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--grey);
+    letter-spacing: .3px;
+    margin-bottom: 10px;
+  }
+
+  .ticket-title{
+    text-align:center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: .5px;
+    margin: 4px 0 12px;
+  }
+
+  .ticket-divider{
+    border: none;
+    border-top: 1.5px dashed rgba(23,20,15,.35);
+    margin: 12px 0;
+  }
+
+  .ticket-field{
+    margin-bottom: 12px;
+  }
+  .ticket-field .k{
+    font-family: var(--font-display);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    color: var(--grey);
+    margin-bottom: 3px;
+  }
+  .ticket-field .v{
+    font-size: 13.5px;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+  .ticket-field .v.big{
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .meter-row{
+    display:flex;
+    gap: 18px;
+  }
+  .meter-row .ticket-field{ flex:1; }
+
+  .entropy-gauge{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .entropy-gauge .bars{
+    display:flex;
+    gap: 2px;
+    align-items:flex-end;
+    height: 16px;
+  }
+  .entropy-gauge .bars span{
+    width: 5px;
+    background: var(--paper-edge);
+    border: 1px solid var(--ink);
+  }
+  .entropy-gauge .bars span.on{
+    background: var(--ink);
+  }
+  .entropy-gauge .pct{
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .zone-tag{
+    display:inline-block;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: .4px;
+  }
+  .zone-tag.challenge{
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--paper);
+  }
+  .zone-tag.relaxed{
+    background: var(--yellow);
+  }
+
+  .barcode{
+    display:flex;
+    align-items:flex-end;
+    gap: 2px;
+    height: 30px;
+    margin-top: 14px;
+  }
+  .barcode span{
+    background: var(--ink);
+    width: 2px;
+  }
+
+  .ticket-footer{
+    text-align:center;
+    font-size: 9px;
+    letter-spacing: .4px;
+    color: var(--grey);
+    margin-top: 8px;
+  }
+
+  .actions-row{
+    width: min(380px, 88vw);
+    display:flex;
+    gap:10px;
+    margin-top: 14px;
+    max-height: 0;
+    overflow:hidden;
+    opacity:0;
+    transition: max-height .4s ease, opacity .4s ease .3s;
+  }
+  .actions-row.show{
+    max-height: 80px;
+    opacity: 1;
+  }
+  .action-btn{
+    flex:1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: .3px;
+    padding: 12px 10px;
+    border-radius: 4px;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    cursor:pointer;
+    box-shadow: 0 3px 0 var(--ink);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .action-btn:hover{ background: #F3EEDD; }
+  .action-btn:active{
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+  .action-btn.primary{
+    background: var(--ink);
+    color: var(--yellow);
+  }
+  .action-btn.primary:hover{ background: #292420; }
+  .action-btn:focus-visible{
+    outline: 3px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  footer.credits{
+    margin-top: 40px;
+    text-align:center;
+    font-size: 11px;
+    color: var(--grey-light);
+    max-width: 50ch;
+    line-height:1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ticket-wrap, #ticket, .actions-row, .stamp-btn, .mode-btn label{
+      transition: none !important;
+      animation: none !important;
+    }
+    .ticket-wrap.show #ticket{ transform:none; opacity:1; }
+  }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="platform-line" aria-hidden="true"></div>
+
+<header class="page-head">
+  <h1>Stochastic Strategies</h1>
+  <p>Push a fare zone, punch the button, and 
+    generate a "transit ticket" that challenges your songwriting. One direction only, no transfers.</p>
+</header>
+
+<div class="machine">
+  <div class="rivet tl"></div>
+  <div class="rivet tr"></div>
+  <div class="rivet bl"></div>
+  <div class="rivet br"></div>
+
+  <div class="machine-top">
+    <div class="line-badge">
+      <span class="roundel" aria-hidden="true">S∞</span>
+      <span class="line-text">
+        <span class="line-no">LINIE S∞</span>
+        <span class="line-sub">STOCHASTIC STRATEGIES</span>
+      </span>
+    </div>
+    <div class="vents" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <p class="machine-title">Fahrschein-Entwerter · Modell S-7</p>
+
+  <div class="display-strip">
+    <span class="status-text" id="statusText">BEREIT</span>
+    <span class="led-dot" id="statusLed" aria-hidden="true"></span>
+  </div>
+  <div class="progress-track" aria-hidden="true">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <form>
+    <fieldset class="mode-select">
+      <legend class="visually-hidden">Choose a difficulty</legend>
+      <div class="mode-btn">
+        <input type="radio" name="mode" id="modeRelaxed" value="relaxed" checked>
+        <label for="modeRelaxed">RELAXED<span class="sub">Zone AB · τ 0.5</span></label>
+      </div>
+      <div class="mode-btn">
+        <input type="radio" name="mode" id="modeChallenge" value="challenge">
+        <label for="modeChallenge">CHALLENGE<span class="sub">Zone ABC · τ 2.5</span></label>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="stamp-row">
+    <button type="button" class="stamp-btn" id="stampBtn">ENTWERTEN</button>
+  </div>
+
+  <div class="slot" aria-hidden="true"></div>
+</div>
+
+<div class="ticket-wrap" id="ticketWrap">
+  <div id="ticket"></div>
+</div>
+
+<div class="actions-row" id="actionsRow">
+  <button type="button" class="action-btn" id="againBtn">Print another</button>
+  <button type="button" class="action-btn primary" id="saveBtn">Save as PNG</button>
+</div>
+
+<footer class="credits">
+  Generated with a temperature-scaled Markov chain over the seven diatonic degrees, fit against the CHORDONOMICON progression corpus. Colours and ticket format are an homage to Berlin transit validators, not an official BVG product.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------------
+   * Music-theory data
+   * ------------------------------------------------------------- */
+  const NOTES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const MAJOR_INTERVALS = [0,2,4,5,7,9,11];
+
+  const DIATONIC_PROGRESSIONS = {
+    "C Major":  { root:"C",  chords:["C","Dm","Em","F","G","Am","Bdim"] },
+    "G Major":  { root:"G",  chords:["G","Am","Bm","C","D","Em","F#dim"] },
+    "D Major":  { root:"D",  chords:["D","Em","F#m","G","A","Bm","C#dim"] },
+    "A Major":  { root:"A",  chords:["A","Bm","C#m","D","E","F#m","G#dim"] },
+    "E Major":  { root:"E",  chords:["E","F#m","G#m","A","B","C#m","D#dim"] },
+    "F Major":  { root:"F",  chords:["F","Gm","Am","A#","C","Dm","Edim"] },
+    "A# Major": { root:"A#", chords:["A#","Cm","Dm","D#","F","Gm","Adim"] },
+    "D# Major": { root:"D#", chords:["D#","Fm","Gm","G#","A#","Cm","Ddim"] }
+  };
+
+  const EXTENSIONS = ["7","maj7","9","sus4","sus2","add9","6"];
+  const TIME_SIGNATURES = ["4/4","3/4","6/8","5/4","7/8","9/8"];
+
+  // Original stochastic prompts (not reproductions of any existing card deck).
+  const STRATEGIES = [
+    "Remove the instrument you reached for first.",
+    "Let the loudest bar become the quietest.",
+    "Record the room, not the performance.",
+    "Play the same phrase, an octave you don't own.",
+    "Trade your chorus for someone else's verse.",
+    "Follow the mistake for four more bars.",
+    "Write the ending before the beginning.",
+    "Give the bassline to whoever is quietest in the room.",
+    "Slow it down until it stops sounding like your song.",
+    "Use only the notes you can play with your eyes closed.",
+    "Ask what the silence is waiting for.",
+    "Reverse the last phrase you liked.",
+    "Let someone else choose the key.",
+    "Cut the intro. Start where it gets interesting.",
+    "Detune one string and keep playing.",
+    "Write the bridge as if the song already ended.",
+    "Replace the drums with something that isn't a drum.",
+    "Sing the melody a beat later than you mean to.",
+    "Leave one bar of the arrangement completely empty.",
+    "Finish it in the wrong tempo, then fix only the ending."
+  ];
+
+  /* ---------------------------------------------------------------
+   * Markov chain machinery (ported from strategy.py)
+   * ------------------------------------------------------------- */
+  const TAU_RELAXED = 0.5;
+  const TAU_CHALLENGE = 2.5;
+  const CHROMATIC_PROB_PER_TAU = 0.10;
+
+  // Rows = from-degree, columns = to-degree (I..VII), same weights as _W_PRIOR.
+  const W_PRIOR = [
+    [0.20, 0.30, 0.10, 1.80, 2.00, 0.50, 0.10],
+    [0.50, 0.10, 0.10, 0.50, 2.50, 0.50, 0.10],
+    [0.50, 0.10, 0.10, 0.50, 0.50, 2.50, 0.10],
+    [2.20, 0.50, 0.10, 0.10, 2.20, 0.50, 0.10],
+    [3.50, 0.50, 0.10, 0.50, 0.10, 0.50, 0.10],
+    [0.50, 2.00, 0.10, 2.00, 0.50, 0.10, 0.10],
+    [2.50, 0.50, 0.10, 0.50, 0.50, 0.50, 0.10]
+  ];
+  const LOG_W = W_PRIOR.map(row => row.map(w => Math.log(w)));
+
+  function softmaxRows(mat){
+    return mat.map(row => {
+      const max = Math.max(...row);
+      const exps = row.map(v => Math.exp(v - max));
+      const sum = exps.reduce((a,b) => a+b, 0);
+      return exps.map(v => v / sum);
+    });
+  }
+
+  function temperatureScale(logW, tau){
+    const scaled = logW.map(row => row.map(v => v / tau));
+    return softmaxRows(scaled);
+  }
+
+  function stationaryDistribution(P, tol=1e-10, maxIter=10000){
+    let pi = new Array(7).fill(1/7);
+    for(let iter=0; iter<maxIter; iter++){
+      const next = new Array(7).fill(0);
+      for(let j=0;j<7;j++){
+        let s=0;
+        for(let i=0;i<7;i++) s += pi[i]*P[i][j];
+        next[j]=s;
+      }
+      let maxDiff=0;
+      for(let j=0;j<7;j++) maxDiff = Math.max(maxDiff, Math.abs(next[j]-pi[j]));
+      pi = next;
+      if(maxDiff < tol) break;
+    }
+    return pi;
+  }
+
+  function entropyRate(P, pi){
+    let H = 0;
+    for(let i=0;i<7;i++){
+      let rowH = 0;
+      for(let j=0;j<7;j++){
+        const p = P[i][j];
+        if(p > 1e-15) rowH += p * Math.log2(p);
+      }
+      H += pi[i] * (-rowH);
+    }
+    return H;
+  }
+
+  function weightedChoice(weights){
+    const total = weights.reduce((a,b)=>a+b,0);
+    let r = Math.random() * total;
+    for(let i=0;i<weights.length;i++){
+      r -= weights[i];
+      if(r <= 0) return i;
+    }
+    return weights.length - 1;
+  }
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function randChoice(arr){
+    return arr[randInt(0, arr.length - 1)];
+  }
+
+  function chromaticChord(keyRoot){
+    const keyIdx = NOTES_SHARP.indexOf(keyRoot);
+    const diatonic = new Set(MAJOR_INTERVALS.map(d => (keyIdx + d) % 12));
+    const chromaticRoots = [];
+    for(let i=0;i<12;i++){ if(!diatonic.has(i)) chromaticRoots.push(NOTES_SHARP[i]); }
+    return randChoice(chromaticRoots);
+  }
+
+  function minimalRepeatingUnit(seq){
+    const n = seq.length;
+    for(let p=1; p<n; p++){
+      let tiles = true;
+      for(let i=0;i<n;i++){
+        if(seq[i] !== seq[i % p]){ tiles = false; break; }
+      }
+      if(tiles) return seq.slice(0, p);
+    }
+    return seq.slice();
+  }
+
+  function generateProgression(tau){
+    const P = temperatureScale(LOG_W, tau);
+    const pi = stationaryDistribution(P);
+    const H = entropyRate(P, pi);
+
+    const keyNames = Object.keys(DIATONIC_PROGRESSIONS);
+    const keyName = randChoice(keyNames);
+    const key = DIATONIC_PROGRESSIONS[keyName];
+
+    const pChromatic = Math.min(tau * CHROMATIC_PROB_PER_TAU, 0.40);
+    const pExtension = Math.min(tau * 0.15, 0.60);
+
+    let currentDegree = weightedChoice(pi);
+    const nChords = randInt(3, 7);
+    const chords = [];
+
+    for(let step=0; step<nChords; step++){
+      if(step > 0 && Math.random() < pChromatic){
+        const root = chromaticChord(key.root);
+        const chord = root + (Math.random() < 0.5 ? randChoice(EXTENSIONS) : "");
+        chords.push(chord);
+      } else {
+        let chord = key.chords[currentDegree];
+        if(Math.random() < pExtension) chord += randChoice(EXTENSIONS);
+        chords.push(chord);
+        currentDegree = weightedChoice(P[currentDegree]);
+      }
+    }
+
+    const looped = minimalRepeatingUnit(chords);
+    return {
+      keyName,
+      progression: looped.join(" – "),
+      entropy: H
+    };
+  }
+
+  function generateCard(difficulty){
+    const tau = difficulty === "challenge" ? TAU_CHALLENGE : TAU_RELAXED;
+    const prog = generateProgression(tau);
+    return {
+      difficulty,
+      strategy: randChoice(STRATEGIES),
+      timesig: randChoice(TIME_SIGNATURES),
+      tempo: randInt(50, 200),
+      keyName: prog.keyName,
+      progression: prog.progression,
+      entropy: prog.entropy,
+      maxEntropy: Math.log2(7)
+    };
+  }
+
+  /* ---------------------------------------------------------------
+   * Rendering
+   * ------------------------------------------------------------- */
+  function serialNumber(){
+    const chars = "0123456789";
+    let s = "";
+    for(let i=0;i<8;i++) s += chars[randInt(0,9)];
+    return s;
+  }
+
+  function formatTimestamp(d){
+    const pad = n => String(n).padStart(2,"0");
+    return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function entropyBars(pct){
+    const totalBars = 10;
+    const on = Math.round((pct/100) * totalBars);
+    let html = "";
+    for(let i=0;i<totalBars;i++){
+      const h = 6 + i*1.1;
+      html += `<span class="${i < on ? 'on':''}" style="height:${h}px"></span>`;
+    }
+    return html;
+  }
+
+  function barcode(){
+    let html = "";
+    for(let i=0;i<38;i++){
+      const h = randInt(8, 28);
+      const w = Math.random() < 0.25 ? 3 : 2;
+      html += `<span style="height:${h}px;width:${w}px"></span>`;
+    }
+    return html;
+  }
+
+  function renderTicket(card){
+    const now = new Date();
+    const pct = Math.round((card.entropy / card.maxEntropy) * 100);
+    const isChallenge = card.difficulty === "challenge";
+
+    const html = `
+      <div class="ticket-row">
+        <span>Nr. ${serialNumber()}</span>
+        <span>${formatTimestamp(now)}</span>
+      </div>
+      <div class="ticket-title">STOCHASTIC STRATEGIES</div>
+      <span class="zone-tag ${isChallenge ? 'challenge':'relaxed'}">${isChallenge ? 'ZONE ABC · CHALLENGE' : 'ZONE AB · RELAXED'}</span>
+
+      <hr class="ticket-divider">
+
+      <div class="ticket-field">
+        <div class="k">DIRECTIVE</div>
+        <div class="v big">${card.strategy}</div>
+      </div>
+
+      <div class="ticket-field">
+        <div class="k">PROGRESSION · ${card.keyName.toUpperCase()}</div>
+        <div class="v">${card.progression}</div>
+      </div>
+
+      <div class="meter-row">
+        <div class="ticket-field">
+          <div class="k">METER</div>
+          <div class="v">${card.timesig}</div>
+        </div>
+        <div class="ticket-field">
+          <div class="k">TEMPO</div>
+          <div class="v">♩ = ${card.tempo}</div>
+        </div>
+      </div>
+
+      <div class="ticket-field">
+        <div class="k">ENTROPY RATE</div>
+        <div class="entropy-gauge">
+          <div class="bars">${entropyBars(pct)}</div>
+          <span class="pct">${card.entropy.toFixed(2)} bits/chord · ${pct}% of max</span>
+        </div>
+      </div>
+
+      <hr class="ticket-divider">
+
+      <div class="barcode" aria-hidden="true">${barcode()}</div>
+      <div class="ticket-footer">GÜLTIG FÜR EINE IDEE · NICHT ÜBERTRAGBAR</div>
+    `;
+    document.getElementById("ticket").innerHTML = html;
+  }
+
+  /* ---------------------------------------------------------------
+   * UI wiring
+   * ------------------------------------------------------------- */
+  const stampBtn = document.getElementById("stampBtn");
+  const statusText = document.getElementById("statusText");
+  const statusLed = document.getElementById("statusLed");
+  const progressFill = document.getElementById("progressFill");
+  const ticketWrap = document.getElementById("ticketWrap");
+  const actionsRow = document.getElementById("actionsRow");
+  const againBtn = document.getElementById("againBtn");
+  const saveBtn = document.getElementById("saveBtn");
+
+  const PRINT_STAGES = ["SHUFFLING THE HARMONIES", "RANDOMIZING INSPIRATION", "TIME IS A CROOKED BOW"];
+
+  function getDifficulty(){
+    return document.getElementById("modeChallenge").checked ? "challenge" : "relaxed";
+  }
+
+  function setStatus(text, busy){
+    statusText.textContent = text;
+    statusText.classList.toggle("amber", !!busy);
+    statusLed.classList.toggle("busy", !!busy);
+  }
+
+  function runPrintSequence(onDone){
+    let stage = 0;
+    let progress = 0;
+    setStatus(PRINT_STAGES[0], true);
+    progressFill.style.width = "0%";
+
+    const interval = setInterval(() => {
+      progress += 4;
+      progressFill.style.width = Math.min(progress, 100) + "%";
+
+      const stageIdx = Math.min(Math.floor(progress / (100 / PRINT_STAGES.length)), PRINT_STAGES.length - 1);
+      if(stageIdx !== stage){
+        stage = stageIdx;
+        setStatus(PRINT_STAGES[stage], true);
+      }
+
+      if(progress >= 100){
+        clearInterval(interval);
+        setStatus("TICKET BEREIT", false);
+        onDone();
+      }
+    }, 45);
+  }
+
+  function printTicket(){
+    stampBtn.disabled = true;
+    stampBtn.classList.add("pressed");
+    ticketWrap.classList.remove("show");
+    actionsRow.classList.remove("show");
+
+    const difficulty = getDifficulty();
+    const card = generateCard(difficulty);
+
+    runPrintSequence(() => {
+      renderTicket(card);
+      // Force reflow so the feed-out animation restarts on repeat prints.
+      void document.getElementById("ticket").offsetHeight;
+      ticketWrap.classList.add("show");
+      actionsRow.classList.add("show");
+      stampBtn.disabled = false;
+      stampBtn.classList.remove("pressed");
+    });
+  }
+
+  stampBtn.addEventListener("click", printTicket);
+  againBtn.addEventListener("click", printTicket);
+
+  saveBtn.addEventListener("click", () => {
+    const ticketEl = document.getElementById("ticket");
+    if(typeof html2canvas !== "function"){
+      alert("PNG export isn't available right now — the rendering library didn't load.");
+      return;
+    }
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving…";
+    html2canvas(ticketEl, { backgroundColor: "#FBF6E9", scale: 2 }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = `stochastic-strategy-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save as PNG";
+    }).catch(() => {
+      alert("Couldn't render the PNG. Try again.");
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save as PNG";
+    });
+  });
+
+  setStatus("BEREIT", false);
+})();
+</script>
+
+</body>
+</html>
